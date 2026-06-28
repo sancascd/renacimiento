@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Proyecto Renacimiento · Catálogo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Spectral:ital,wght@0,400;0,500;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --dusk:#1b2636; --dusk-2:#26374e;
+    --paper:#f2eee4; --paper-2:#ebe6d9; --card:#f8f5ee;
+    --ink:#23282f; --ink-soft:#5b6168; --ink-faint:#8b8f93;
+    --brass:#b8843c; --brass-bright:#cd9a4c;
+    --line:#d8d2c4; --line-soft:#e3dccd;
+    --good:#5f7a4f;
+    --maxw:1040px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:'Spectral',Georgia,serif; font-size:17px; line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+  }
+  button{font-family:inherit;}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 26px;}
+  .mono{font-family:'IBM Plex Mono',monospace;}
+  .eyebrow{font-family:'IBM Plex Mono',monospace;font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;}
+
+  /* header */
+  .topbar{
+    background:var(--dusk); color:var(--paper);
+    position:sticky; top:0; z-index:30;
+    border-bottom:1px solid rgba(205,154,76,.25);
+  }
+  .topbar .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-top:16px;padding-bottom:16px;}
+  .brand{display:flex;flex-direction:column;line-height:1.1;}
+  .brand .name{font-family:'Fraunces',serif;font-weight:500;font-size:1.15rem;}
+  .brand .sub{font-family:'IBM Plex Mono',monospace;font-size:.6rem;letter-spacing:.22em;text-transform:uppercase;color:var(--brass-bright);margin-top:3px;}
+  .topbtn{
+    background:transparent;color:var(--paper);
+    border:1px solid rgba(232,217,184,.4);border-radius:2px;
+    font-family:'IBM Plex Mono',monospace;font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;
+    padding:9px 15px;cursor:pointer;transition:background .2s,border-color .2s;
+  }
+  .topbtn:hover{background:rgba(232,217,184,.12);border-color:var(--brass-bright);}
+  .topbtn:focus-visible{outline:2px solid var(--brass-bright);outline-offset:2px;}
+
+  /* catalogue */
+  .intro{padding:46px 0 8px;}
+  .intro h1{font-family:'Fraunces',serif;font-weight:500;font-size:clamp(1.7rem,4vw,2.5rem);margin:0 0 .25em;letter-spacing:-.01em;}
+  .intro p{color:var(--ink-soft);max-width:54ch;margin:0;}
+
+  .grid{
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+    gap:18px;padding:34px 0 60px;
+  }
+  .card{
+    background:var(--card);border:1px solid var(--line);border-radius:4px;
+    padding:24px 24px 20px;cursor:pointer;text-align:left;
+    display:flex;flex-direction:column;min-height:172px;
+    transition:transform .18s ease,border-color .2s ease,box-shadow .2s ease;
+    position:relative;overflow:hidden;
+  }
+  .card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--brass);opacity:0;transition:opacity .2s;}
+  .card:hover{transform:translateY(-3px);border-color:var(--brass);box-shadow:0 10px 26px -18px rgba(27,38,54,.5);}
+  .card:hover::before{opacity:1;}
+  .card:focus-visible{outline:2px solid var(--brass);outline-offset:2px;}
+  .card .idx{font-family:'IBM Plex Mono',monospace;font-size:.66rem;letter-spacing:.16em;color:var(--brass);}
+  .card h2{font-family:'Fraunces',serif;font-weight:500;font-size:1.4rem;line-height:1.15;margin:10px 0 8px;}
+  .card .blurb{color:var(--ink-soft);font-size:.95rem;flex:1;}
+  .card .meta{display:flex;gap:14px;flex-wrap:wrap;margin-top:16px;font-family:'IBM Plex Mono',monospace;font-size:.66rem;letter-spacing:.04em;color:var(--ink-faint);text-transform:uppercase;}
+  .card .meta b{color:var(--ink);font-weight:500;}
+  .card.add{align-items:center;justify-content:center;text-align:center;border-style:dashed;background:transparent;color:var(--ink-soft);}
+  .card.add .plus{font-family:'Fraunces',serif;font-size:2rem;color:var(--brass);line-height:1;}
+  .card.add span{display:block;margin-top:8px;font-family:'IBM Plex Mono',monospace;font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;}
+
+  /* topic detail */
+  .detail{padding:34px 0 70px;}
+  .back{background:none;border:none;color:var(--brass);cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:.74rem;letter-spacing:.1em;text-transform:uppercase;padding:6px 0;margin-bottom:18px;}
+  .back:hover{color:var(--ink);}
+  .detail-head{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;border-bottom:1px solid var(--line);padding-bottom:24px;margin-bottom:30px;}
+  .detail-head h1{font-family:'Fraunces',serif;font-weight:500;font-size:clamp(1.7rem,4vw,2.4rem);margin:0 0 .2em;}
+  .detail-head .blurb{color:var(--ink-soft);max-width:50ch;margin:0;}
+  .danger-link{background:none;border:none;color:var(--ink-faint);cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:.66rem;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;}
+  .danger-link:hover{color:#a4543d;}
+
+  .section{margin-bottom:46px;}
+  .section-title{display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin-bottom:16px;}
+  .section-title h3{font-family:'Fraunces',serif;font-weight:500;font-size:1.3rem;margin:0;}
+  .section-title .count{font-family:'IBM Plex Mono',monospace;font-size:.68rem;color:var(--ink-faint);letter-spacing:.08em;}
+
+  .addbtn{
+    background:var(--dusk);color:var(--paper);border:none;border-radius:2px;
+    font-family:'IBM Plex Mono',monospace;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;
+    padding:9px 16px;cursor:pointer;transition:background .2s;
+  }
+  .addbtn:hover{background:var(--dusk-2);}
+  .addbtn:focus-visible{outline:2px solid var(--brass);outline-offset:2px;}
+
+  /* item rows */
+  .item{display:flex;gap:14px;align-items:flex-start;padding:16px 0;border-top:1px solid var(--line-soft);}
+  .item:first-child{border-top:none;}
+  .status{flex:none;margin-top:3px;width:18px;height:18px;border-radius:50%;border:1.5px solid var(--ink-faint);background:transparent;cursor:pointer;position:relative;transition:.2s;}
+  .status[data-s="encurso"]{border-color:var(--brass);background:linear-gradient(90deg,var(--brass) 50%,transparent 50%);}
+  .status[data-s="hecho"]{border-color:var(--brass);background:var(--brass);}
+  .status[data-s="hecho"]::after{content:"";position:absolute;left:5px;top:2px;width:4px;height:8px;border:solid var(--paper);border-width:0 2px 2px 0;transform:rotate(45deg);}
+  .status:focus-visible{outline:2px solid var(--brass);outline-offset:2px;}
+  .item-body{flex:1;min-width:0;}
+  .item-body .kind{font-family:'IBM Plex Mono',monospace;font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:var(--brass);background:var(--paper-2);border-radius:2px;padding:2px 7px;display:inline-block;margin-bottom:5px;}
+  .item-body .title{font-size:1.05rem;line-height:1.3;}
+  .item-body .title.done{color:var(--ink-faint);}
+  .item-body .author{color:var(--ink-soft);font-size:.92rem;font-style:italic;}
+  .item-body .note{margin-top:6px;color:var(--ink-soft);font-size:.92rem;background:var(--paper-2);border-radius:3px;padding:8px 11px;}
+  .item-actions{flex:none;display:flex;gap:10px;align-items:center;}
+  .icon-btn{background:none;border:none;cursor:pointer;color:var(--ink-faint);font-family:'IBM Plex Mono',monospace;font-size:.66rem;letter-spacing:.06em;text-transform:uppercase;padding:4px 2px;}
+  .icon-btn:hover{color:var(--brass);}
+  .icon-btn.del:hover{color:#a4543d;}
+
+  /* learnings */
+  .learning{padding:16px 0;border-top:1px solid var(--line-soft);}
+  .learning:first-child{border-top:none;}
+  .learning .date{font-family:'IBM Plex Mono',monospace;font-size:.64rem;letter-spacing:.1em;text-transform:uppercase;color:var(--brass);margin-bottom:5px;}
+  .learning .ltext{white-space:pre-wrap;}
+  .learning .lrow{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;}
+
+  .empty{color:var(--ink-faint);font-style:italic;padding:14px 0;}
+
+  /* forms */
+  .form{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--brass);border-radius:4px;padding:22px;margin:6px 0 18px;}
+  .form .row{margin-bottom:14px;}
+  .form label{display:block;font-family:'IBM Plex Mono',monospace;font-size:.64rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:6px;}
+  .form input,.form select,.form textarea{
+    width:100%;font-family:'Spectral',serif;font-size:1rem;color:var(--ink);
+    background:var(--paper);border:1px solid var(--line);border-radius:3px;padding:10px 12px;
+  }
+  .form textarea{resize:vertical;min-height:90px;line-height:1.5;}
+  .form input:focus,.form select:focus,.form textarea:focus{outline:none;border-color:var(--brass);box-shadow:0 0 0 2px rgba(184,132,60,.15);}
+  .form-actions{display:flex;gap:10px;margin-top:6px;}
+  .btn-primary{background:var(--brass);color:#fff;border:none;border-radius:2px;font-family:'IBM Plex Mono',monospace;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;padding:10px 18px;cursor:pointer;}
+  .btn-primary:hover{background:var(--brass-bright);}
+  .btn-ghost{background:none;border:1px solid var(--line);border-radius:2px;color:var(--ink-soft);font-family:'IBM Plex Mono',monospace;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;padding:10px 18px;cursor:pointer;}
+  .btn-ghost:hover{border-color:var(--ink-soft);}
+
+  footer{border-top:1px solid var(--line);padding:24px 0 40px;}
+  footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;}
+  footer .note{font-family:'IBM Plex Mono',monospace;font-size:.66rem;letter-spacing:.08em;color:var(--ink-faint);text-transform:uppercase;}
+
+  .loading{padding:90px 26px;text-align:center;color:var(--ink-soft);font-style:italic;}
+  .toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--dusk);color:var(--paper);font-family:'IBM Plex Mono',monospace;font-size:.72rem;letter-spacing:.06em;padding:11px 18px;border-radius:3px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:50;}
+  .toast.show{opacity:1;}
+
+  @media (max-width:560px){
+    .detail-head{flex-direction:column;}
+    .item-actions{flex-direction:column;gap:4px;}
+  }
+  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto;}*{transition:none!important;animation:none!important;}}
+</style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="wrap">
+      <div class="brand">
+        <span class="name">Proyecto Renacimiento</span>
+        <span class="sub">Catálogo</span>
+      </div>
+      <button class="topbtn" data-action="surprise">Sorpréndeme</button>
+    </div>
+  </div>
+
+  <main id="app">
+    <div class="loading">Abriendo tu catálogo…</div>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <span class="note" id="saveNote">Tus cambios se guardan solos</span>
+      <button class="danger-link" data-action="reset">Reiniciar catálogo</button>
+    </div>
+  </footer>
+
+  <div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+
+const STORAGE_KEY = "renacimiento:catalogo";
+let usingStorage = (function(){try{const k="__rn_test__";localStorage.setItem(k,"1");localStorage.removeItem(k);return true;}catch(e){return false;}})();
+
+const KINDS = [
+  {v:"libro",      l:"Libro"},
+  {v:"documental", l:"Documental"},
+  {v:"video",      l:"Vídeo"},
+  {v:"articulo",   l:"Artículo"},
+  {v:"curso",      l:"Curso / web"},
+  {v:"pregunta",   l:"Pregunta"},
+  {v:"otro",       l:"Otro"}
+];
+const kindLabel = v => (KINDS.find(k=>k.v===v)||{l:"Otro"}).l;
+const STATUS_ORDER = ["pendiente","encurso","hecho"];
+
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+function uid(){return "id_"+Date.now().toString(36)+"_"+Math.random().toString(36).slice(2,7);}
+
+function seed(){
+  const T = (name,blurb,items)=>({id:uid(),name,blurb,items:items.map(i=>({id:uid(),kind:i[0],title:i[1],author:i[2]||"",note:"",status:"pendiente"})),learnings:[]});
+  return {topics:[
+    T("Astronomía y cosmología","De qué está hecho todo y por qué el cielo es como es.",[
+      ["libro","Cosmos","Carl Sagan"],
+      ["libro","Una breve historia del tiempo","Stephen Hawking"],
+      ["libro","Astrofísica para gente con prisa","Neil deGrasse Tyson"],
+      ["documental","Cosmos: una odisea en el espacio-tiempo",""],
+      ["video","Kurzgesagt","Canal de YouTube"]
+    ]),
+    T("Matemáticas con asombro","Recuperar la curiosidad por los números desde preguntas bonitas, no desde ejercicios.",[
+      ["video","3Blue1Brown","Canal de YouTube"],
+      ["libro","El placer de la x","Steven Strogatz"],
+      ["libro","El hombre que calculaba","Malba Tahan"],
+      ["libro","Cartas a una joven matemática","Ian Stewart"],
+      ["pregunta","¿Qué es realmente π y por qué aparece en todas partes?",""],
+      ["pregunta","¿Qué significa el infinito? ¿Y el número e?",""],
+      ["pregunta","¿Cómo se descubrió el cero? ¿Qué son los fractales?",""]
+    ]),
+    T("Historia","Cómo llegamos hasta aquí.",[
+      ["libro","Sapiens","Yuval Noah Harari"],
+      ["libro","Armas, gérmenes y acero","Jared Diamond"],
+      ["pregunta","Elige una época que te atraiga y empieza solo por ahí",""]
+    ]),
+    T("Psicología y neurociencia","Cómo funciona la mente por dentro.",[
+      ["libro","Pensar rápido, pensar despacio","Daniel Kahneman"],
+      ["libro","El error de Descartes","António Damásio"],
+      ["libro","Compórtate","Robert Sapolsky"],
+      ["libro","Incógnito","David Eagleman"]
+    ]),
+    T("Arquitectura y diseño","Por qué los espacios nos hacen sentir lo que sentimos.",[
+      ["libro","Atmósferas","Peter Zumthor"],
+      ["libro","Hacia una arquitectura","Le Corbusier"],
+      ["libro","La poética del espacio","Gaston Bachelard"],
+      ["pregunta","Elige un edificio que te guste y averigua por qué está construido así",""]
+    ]),
+    T("Filosofía de la ciencia","Cómo sabemos lo que sabemos.",[
+      ["libro","El mundo y sus demonios","Carl Sagan"],
+      ["libro","¿Qué es esa cosa llamada ciencia?","Alan Chalmers"],
+      ["libro","La estructura de las revoluciones científicas","Thomas Kuhn"]
+    ]),
+    T("Ajedrez y problemas","Entrenar la concentración y la paciencia, sin competir.",[
+      ["curso","lichess.org","Jugar y hacer puzzles, gratis"],
+      ["libro","Bobby Fischer enseña ajedrez",""],
+      ["pregunta","Aprender los principios de apertura, sin mirar el Elo",""],
+      ["otro","Cubo de Rubik por capas","Resolverlo alguna vez, sin cronómetro"]
+    ])
+  ]};
+}
+
+let state = null;
+const ui = {view:"catalogue", topicId:null, form:null};
+
+function loadState(){
+  if(!usingStorage) return null;
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  }catch(e){ return null; }
+}
+let saveTimer=null;
+function saveState(){
+  if(!usingStorage){flashNote("Este navegador no permite guardar");return;}
+  try{
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    flashNote("Guardado");
+  }catch(e){
+    flashNote("No se pudo guardar");
+  }
+}
+function flashNote(txt){
+  const n=document.getElementById("saveNote");
+  if(!n) return;
+  n.textContent = txt;
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(()=>{n.textContent = usingStorage?"Tus cambios se guardan solos":"Cambios solo en esta sesión";},1600);
+}
+function toast(msg){
+  const t=document.getElementById("toast");
+  t.textContent=msg;t.classList.add("show");
+  setTimeout(()=>t.classList.remove("show"),1700);
+}
+
+/* ---------- helpers ---------- */
+function topic(id){return state.topics.find(t=>t.id===id);}
+function counts(t){
+  const total=t.items.length;
+  const pend=t.items.filter(i=>i.status!=="hecho").length;
+  return {total,pend,learn:t.learnings.length};
+}
+
+/* ---------- render ---------- */
+const app = document.getElementById("app");
+
+function render(){
+  if(ui.view==="topic" && topic(ui.topicId)) renderTopic();
+  else { ui.view="catalogue"; renderCatalogue(); }
+}
+
+function renderCatalogue(){
+  const cards = state.topics.map((t,i)=>{
+    const c=counts(t);
+    return `<button class="card" data-action="open" data-id="${t.id}">
+      <span class="idx">TEMA ${String(i+1).padStart(2,"0")}</span>
+      <h2>${esc(t.name)}</h2>
+      <span class="blurb">${esc(t.blurb)}</span>
+      <span class="meta">
+        <span><b>${c.total}</b> en la lista</span>
+        <span><b>${c.pend}</b> por explorar</span>
+        <span><b>${c.learn}</b> apuntes</span>
+      </span>
+    </button>`;
+  }).join("");
+
+  const addCard = ui.form && ui.form.type==="topic"
+    ? topicForm()
+    : `<button class="card add" data-action="new-topic"><span class="plus">+</span><span>Añadir tema</span></button>`;
+
+  app.innerHTML = `
+    <div class="wrap intro">
+      <h1>Hoy me apetece…</h1>
+      <p>Tu catálogo. Llega, mira qué te llama y entra. Cada tema guarda sus lecturas, recursos y lo que vayas aprendiendo.</p>
+    </div>
+    <div class="wrap"><div class="grid">${cards}${ui.form&&ui.form.type==="topic"?"":addCard}</div>
+    ${ui.form&&ui.form.type==="topic"?`<div style="padding-bottom:50px">${topicForm()}</div>`:""}</div>`;
+}
+
+function topicForm(){
+  const d=ui.form.draft||{name:"",blurb:""};
+  const title = ui.form.mode==="edit"?"Editar tema":"Nuevo tema";
+  return `<div class="form" data-form="topic">
+    <div class="row"><label>Nombre del tema</label><input id="f-name" type="text" value="${esc(d.name)}" placeholder="p. ej. Música, Biología, Trading…"></div>
+    <div class="row"><label>Descripción corta</label><input id="f-blurb" type="text" value="${esc(d.blurb)}" placeholder="Una línea que capture por qué te interesa"></div>
+    <div class="form-actions">
+      <button class="btn-primary" data-action="save-topic">${ui.form.mode==="edit"?"Guardar":"Crear tema"}</button>
+      <button class="btn-ghost" data-action="cancel-form">Cancelar</button>
+    </div>
+  </div>`;
+}
+
+function renderTopic(){
+  const t=topic(ui.topicId);
+  const items = t.items.length ? t.items.map(it=>itemRow(t,it)).join("") : `<p class="empty">Aún no hay nada aquí. Añade el primer libro o recurso.</p>`;
+  const learnings = t.learnings.length
+    ? [...t.learnings].sort((a,b)=>b.ts-a.ts).map(l=>learningRow(t,l)).join("")
+    : `<p class="empty">Cuando aprendas o pienses algo sobre este tema, apúntalo aquí. No hace falta que sea redondo.</p>`;
+
+  const itemFormHtml = ui.form && ui.form.type==="item" && ui.form.tid===t.id ? itemForm(t) : "";
+  const learnFormHtml = ui.form && ui.form.type==="learning" && ui.form.tid===t.id ? learningForm() : "";
+
+  app.innerHTML = `
+    <div class="wrap detail">
+      <button class="back" data-action="back">← Catálogo</button>
+      <div class="detail-head">
+        <div>
+          <h1>${esc(t.name)}</h1>
+          <p class="blurb">${esc(t.blurb)}</p>
+        </div>
+        <button class="danger-link" data-action="edit-topic" data-id="${t.id}">Editar tema</button>
+      </div>
+
+      <div class="section">
+        <div class="section-title">
+          <h3>Lecturas y recursos</h3>
+          <button class="addbtn" data-action="new-item" data-tid="${t.id}">+ Añadir</button>
+        </div>
+        ${itemFormHtml}
+        ${items}
+      </div>
+
+      <div class="section">
+        <div class="section-title">
+          <h3>Lo que he aprendido</h3>
+          <button class="addbtn" data-action="new-learning" data-tid="${t.id}">+ Apuntar</button>
+        </div>
+        ${learnFormHtml}
+        ${learnings}
+      </div>
+    </div>`;
+}
+
+function itemRow(t,it){
+  const done = it.status==="hecho";
+  return `<div class="item">
+    <button class="status" data-s="${it.status}" data-action="cycle" data-tid="${t.id}" data-iid="${it.id}" title="Cambiar estado" aria-label="Cambiar estado"></button>
+    <div class="item-body">
+      <span class="kind">${esc(kindLabel(it.kind))}</span>
+      <div class="title ${done?"done":""}">${esc(it.title)}</div>
+      ${it.author?`<div class="author">${esc(it.author)}</div>`:""}
+      ${it.note?`<div class="note">${esc(it.note)}</div>`:""}
+    </div>
+    <div class="item-actions">
+      <button class="icon-btn" data-action="edit-item" data-tid="${t.id}" data-iid="${it.id}">Editar</button>
+      <button class="icon-btn del" data-action="del-item" data-tid="${t.id}" data-iid="${it.id}">Quitar</button>
+    </div>
+  </div>`;
+}
+
+function itemForm(t){
+  const d=ui.form.draft||{kind:"libro",title:"",author:"",note:""};
+  const opts=KINDS.map(k=>`<option value="${k.v}" ${k.v===d.kind?"selected":""}>${k.l}</option>`).join("");
+  return `<div class="form" data-form="item">
+    <div class="row"><label>Tipo</label><select id="f-kind">${opts}</select></div>
+    <div class="row"><label>Título</label><input id="f-title" type="text" value="${esc(d.title)}" placeholder="Título del libro, vídeo, pregunta…"></div>
+    <div class="row"><label>Autor o fuente <span style="text-transform:none;letter-spacing:0">(opcional)</span></label><input id="f-author" type="text" value="${esc(d.author)}"></div>
+    <div class="row"><label>Nota <span style="text-transform:none;letter-spacing:0">(opcional)</span></label><textarea id="f-note" placeholder="Por qué te interesa, o lo que quieras recordar de esto">${esc(d.note)}</textarea></div>
+    <div class="form-actions">
+      <button class="btn-primary" data-action="save-item">${ui.form.mode==="edit"?"Guardar":"Añadir"}</button>
+      <button class="btn-ghost" data-action="cancel-form">Cancelar</button>
+    </div>
+  </div>`;
+}
+
+function learningRow(t,l){
+  return `<div class="learning">
+    <div class="lrow">
+      <div>
+        <div class="date">${esc(l.date)}</div>
+        <div class="ltext">${esc(l.text)}</div>
+      </div>
+      <button class="icon-btn del" data-action="del-learning" data-tid="${t.id}" data-lid="${l.id}">Borrar</button>
+    </div>
+  </div>`;
+}
+
+function learningForm(){
+  const d=ui.form.draft||{text:""};
+  return `<div class="form" data-form="learning">
+    <div class="row"><label>¿Qué has aprendido o pensado?</label><textarea id="f-ltext" placeholder="Una idea que te sorprendió, una conexión, una duda nueva…">${esc(d.text)}</textarea></div>
+    <div class="form-actions">
+      <button class="btn-primary" data-action="save-learning">Guardar apunte</button>
+      <button class="btn-ghost" data-action="cancel-form">Cancelar</button>
+    </div>
+  </div>`;
+}
+
+/* ---------- events ---------- */
+function val(id){const e=document.getElementById(id);return e?e.value.trim():"";}
+
+app.addEventListener("click",(e)=>{
+  const el=e.target.closest("[data-action]");
+  if(!el) return;
+  const a=el.dataset.action;
+
+  if(a==="open"){ui.topicId=el.dataset.id;ui.view="topic";ui.form=null;render();window.scrollTo(0,0);return;}
+  if(a==="back"){ui.view="catalogue";ui.topicId=null;ui.form=null;render();window.scrollTo(0,0);return;}
+
+  if(a==="new-topic"){ui.form={type:"topic",mode:"add",draft:{name:"",blurb:""}};render();return;}
+  if(a==="edit-topic"){const t=topic(el.dataset.id);ui.form={type:"topic",mode:"edit",id:t.id,draft:{name:t.name,blurb:t.blurb}};render();return;}
+  if(a==="save-topic"){
+    const name=val("f-name");if(!name){toast("Ponle un nombre al tema");return;}
+    const blurb=val("f-blurb");
+    if(ui.form.mode==="edit"){const t=topic(ui.form.id);t.name=name;t.blurb=blurb;}
+    else{state.topics.push({id:uid(),name,blurb,items:[],learnings:[]});}
+    ui.form=null;saveState();render();return;
+  }
+
+  if(a==="new-item"){ui.form={type:"item",mode:"add",tid:el.dataset.tid,draft:{kind:"libro",title:"",author:"",note:""}};render();return;}
+  if(a==="edit-item"){
+    const t=topic(el.dataset.tid);const it=t.items.find(x=>x.id===el.dataset.iid);
+    ui.form={type:"item",mode:"edit",tid:t.id,iid:it.id,draft:{kind:it.kind,title:it.title,author:it.author,note:it.note}};render();return;
+  }
+  if(a==="save-item"){
+    const title=val("f-title");if(!title){toast("Falta el título");return;}
+    const data={kind:val("f-kind")||"otro",title,author:val("f-author"),note:val("f-note")};
+    const t=topic(ui.form.tid);
+    if(ui.form.mode==="edit"){const it=t.items.find(x=>x.id===ui.form.iid);Object.assign(it,data);}
+    else{t.items.push({id:uid(),status:"pendiente",...data});}
+    ui.form=null;saveState();render();return;
+  }
+  if(a==="del-item"){
+    if(!confirm("¿Quitar este elemento de la lista?"))return;
+    const t=topic(el.dataset.tid);t.items=t.items.filter(x=>x.id!==el.dataset.iid);saveState();render();return;
+  }
+  if(a==="cycle"){
+    const t=topic(el.dataset.tid);const it=t.items.find(x=>x.id===el.dataset.iid);
+    const idx=STATUS_ORDER.indexOf(it.status);it.status=STATUS_ORDER[(idx+1)%STATUS_ORDER.length];
+    saveState();render();return;
+  }
+
+  if(a==="new-learning"){ui.form={type:"learning",mode:"add",tid:el.dataset.tid,draft:{text:""}};render();return;}
+  if(a==="save-learning"){
+    const text=val("f-ltext");if(!text){toast("Escribe algo primero");return;}
+    const t=topic(ui.form.tid);
+    const date=new Date().toLocaleDateString("es-ES",{day:"numeric",month:"long",year:"numeric"});
+    t.learnings.push({id:uid(),ts:Date.now(),date,text});
+    ui.form=null;saveState();render();return;
+  }
+  if(a==="del-learning"){
+    if(!confirm("¿Borrar este apunte?"))return;
+    const t=topic(el.dataset.tid);t.learnings=t.learnings.filter(x=>x.id!==el.dataset.lid);saveState();render();return;
+  }
+
+  if(a==="cancel-form"){ui.form=null;render();return;}
+
+  if(a==="surprise"){
+    if(!state.topics.length){toast("Añade un tema primero");return;}
+    const t=state.topics[Math.floor(Math.random()*state.topics.length)];
+    ui.topicId=t.id;ui.view="topic";ui.form=null;render();window.scrollTo(0,0);
+    toast("Hoy: "+t.name);return;
+  }
+});
+
+document.querySelector("footer").addEventListener("click",(e)=>{
+  const el=e.target.closest("[data-action]");
+  if(el&&el.dataset.action==="reset"){
+    if(!confirm("Esto restaura el catálogo inicial y borra tus añadidos, notas y apuntes. ¿Seguro?"))return;
+    state=seed();ui.view="catalogue";ui.topicId=null;ui.form=null;saveState();render();toast("Catálogo reiniciado");
+  }
+});
+
+/* ---------- init ---------- */
+(function init(){
+  const saved=loadState();
+  if(saved&&saved.topics){state=saved;}
+  else{state=seed();saveState();}
+  if(!usingStorage){
+    const n=document.getElementById("saveNote");
+    if(n)n.textContent="Cambios solo en esta sesión";
+  }
+  render();
+})();
+</script>
+</body>
+</html>
