@@ -38,6 +38,11 @@ El catálogo organiza sobre todo el pilar 1, pero puede crecer a los demás.
 - Estado: `{ topics: [ { id, name, blurb, items:[{id,kind,title,author,note,status}], learnings:[{id,ts,date,text}] } ] }`.
 - `kind`: libro | documental | video | articulo | curso | pregunta | otro.
 - `status`: pendiente → encurso → hecho (se cicla con un clic en el círculo).
+- Vistas (SPA, var `ui.view`): `landing` (portada viva) · `catalogue` · `topic`.
+- Utilidades: banda **"En curso ahora"** en el catálogo (ítems con `status:"encurso"`
+  de todos los temas) y reproductor flotante **"Modo concentración"** (YouTube embed;
+  recuerda la emisora en `localStorage` clave `renacimiento:focus`). El reproductor
+  vive FUERA de `#app` para que la música no se corte al re-renderizar las vistas.
 
 Mantén el patrón de un solo archivo mientras sea razonable. Si crece mucho,
 separa CSS/JS antes que romper la simplicidad.
