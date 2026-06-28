@@ -207,6 +207,16 @@
   .fcustom input:focus{outline:none;border-color:var(--ice);box-shadow:0 0 0 2px rgba(155,220,255,.15);}
   .fcustom button{font-family:var(--mono);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:#0a0a0f;background:linear-gradient(180deg,#fff,#c2c8d2);border:none;border-radius:8px;padding:0 13px;cursor:pointer;}
 
+  /* ============ AUTH / SYNC ============ */
+  .topbtn.synced{border-color:var(--ice);color:var(--ice);}
+  .auth-panel{position:fixed;right:20px;top:70px;z-index:81;width:320px;max-width:calc(100vw - 40px);background:#13131c;border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:0 26px 64px -22px #000;}
+  .auth-panel[hidden]{display:none;}
+  .auth-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+  .auth-head h4{font-family:var(--ui);font-weight:600;font-size:.92rem;margin:0;text-transform:uppercase;letter-spacing:.06em;}
+  .auth-p{font-size:.86rem;color:var(--txt-soft);margin:0 0 12px;line-height:1.45;}
+  .auth-p b{color:var(--txt);}
+  .auth-msg{font-family:var(--mono);font-size:.62rem;letter-spacing:.03em;color:var(--ice);margin-top:10px;min-height:1em;line-height:1.45;}
+
   @media (max-width:560px){
     .detail-head{flex-direction:column;}
     .item-actions{flex-direction:column;gap:4px;}
@@ -230,6 +240,7 @@
       </div>
       <div class="top-right">
         <span class="top-clock" data-clock>--:--:--</span>
+        <button class="topbtn" id="authBtn">Sincronizar</button>
         <button class="topbtn" data-action="surprise">Sorpréndeme</button>
       </div>
     </div>
@@ -247,6 +258,8 @@
   </footer>
 
   <div class="toast" id="toast"></div>
+
+  <div class="auth-panel" id="authPanel" hidden></div>
 
   <button class="focus-fab" id="focusFab" aria-label="Modo concentración" title="Modo concentración">&#9834;</button>
   <div class="focus-panel" id="focusPanel" hidden>
@@ -275,6 +288,10 @@
 
 const STORAGE_KEY = "renacimiento:catalogo";
 let usingStorage = (function(){try{const k="__rn_test__";localStorage.setItem(k,"1");localStorage.removeItem(k);return true;}catch(e){return false;}})();
+
+const SB_URL = "https://ktvpbruerckmgqvgvhxa.supabase.co";
+const SB_KEY = "sb_publishable_DGIreihWriZBQabRcTFIRg_RS6biZiA";
+window.__SB_CFG = {url:SB_URL, key:SB_KEY};
 
 const KINDS = [
   {v:"libro",      l:"Libro"},
@@ -359,9 +376,14 @@ function loadState(){
   try{const raw = localStorage.getItem(STORAGE_KEY);return raw ? JSON.parse(raw) : null;}catch(e){ return null; }
 }
 let saveTimer=null;
+function saveLocal(){
+  if(!usingStorage) return false;
+  try{localStorage.setItem(STORAGE_KEY, JSON.stringify(state));return true;}catch(e){return false;}
+}
 function saveState(){
-  if(!usingStorage){flashNote("Este navegador no permite guardar");return;}
-  try{localStorage.setItem(STORAGE_KEY, JSON.stringify(state));flashNote("Guardado");}catch(e){flashNote("No se pudo guardar");}
+  const ok=saveLocal();
+  if(session && sb){ flashNote("Guardando…"); pushCloud(false); }
+  else { flashNote(ok?"Guardado":"Este navegador no permite guardar"); }
 }
 function flashNote(txt){
   const n=document.getElementById("saveNote");if(!n) return;
@@ -369,6 +391,68 @@ function flashNote(txt){
   saveTimer=setTimeout(()=>{n.textContent = usingStorage?"Tus cambios se guardan solos":"Cambios solo en esta sesión";},1600);
 }
 function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),1700);}
+
+/* ---------- cloud sync (Supabase) ---------- */
+let sb=null, session=null, cloudTimer=null;
+function authMsg(t){const e=document.getElementById("authMsg");if(e)e.textContent=t;}
+window.cloudReady=function(client){
+  sb=client;
+  sb.auth.getSession().then(({data})=>{session=data.session;updateAuthUI();if(session)syncOnLogin();});
+  sb.auth.onAuthStateChange((_e,sess)=>{const had=!!session;session=sess;updateAuthUI();if(sess&&!had)syncOnLogin();});
+};
+async function syncOnLogin(){
+  if(!sb||!session) return;
+  try{
+    const {data,error}=await sb.from("catalogs").select("data").eq("user_id",session.user.id).maybeSingle();
+    if(error){console.warn("sync",error);toast("Error al sincronizar");return;}
+    if(data&&data.data&&Array.isArray(data.data.topics)){
+      state=data.data;saveLocal();
+      if(ui.view==="topic"&&!topic(ui.topicId)) ui.view="catalogue";
+      render();toast("Sincronizado ✓");
+    }else{
+      await pushCloud(true);toast("Catálogo subido a la nube ✓");
+    }
+  }catch(e){console.warn(e);}
+  updateAuthUI();
+}
+async function pushCloud(now){
+  if(!sb||!session) return;
+  const run=async()=>{
+    try{
+      const {error}=await sb.from("catalogs").upsert({user_id:session.user.id,data:state,updated_at:new Date().toISOString()},{onConflict:"user_id"});
+      flashNote(error?"Error al guardar en la nube":"Guardado en la nube ☁");
+      if(error)console.warn("push",error);
+    }catch(e){console.warn(e);flashNote("Error al guardar en la nube");}
+  };
+  if(now){await run();}else{clearTimeout(cloudTimer);cloudTimer=setTimeout(run,800);}
+}
+async function sendMagicLink(email){
+  if(!sb){toast("Conectando con la nube… reintenta en un segundo");return;}
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){authMsg("Escribe un email válido");return;}
+  authMsg("Enviando…");
+  const {error}=await sb.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+location.pathname}});
+  authMsg(error?("No se pudo enviar: "+error.message):("✓ Enlace enviado a "+email+". Ábrelo en este mismo dispositivo."));
+}
+async function logout(){if(!sb)return;await sb.auth.signOut();session=null;updateAuthUI();toast("Sesión cerrada");}
+function updateAuthUI(){
+  const btn=document.getElementById("authBtn");
+  if(btn){btn.textContent=session?"☁ Sincronizado":"Sincronizar";btn.classList.toggle("synced",!!session);}
+  const panel=document.getElementById("authPanel");
+  if(panel) panel.innerHTML=session?authPanelIn():authPanelOut();
+}
+function authPanelOut(){
+  return `<div class="auth-head"><h4>Sincronizar</h4><button class="focus-x" data-auth="close" aria-label="Cerrar">&#10005;</button></div>
+  <p class="auth-p">Entra con tu email y tus temas, lecturas y apuntes te seguirán en cualquier dispositivo.</p>
+  <div class="fcustom"><input id="authEmail" type="email" placeholder="tu@email.com"><button data-auth="send">Enviar enlace</button></div>
+  <div class="auth-msg" id="authMsg"></div>`;
+}
+function authPanelIn(){
+  const em=session&&session.user?session.user.email:"";
+  return `<div class="auth-head"><h4>Sincronizado ☁</h4><button class="focus-x" data-auth="close" aria-label="Cerrar">&#10005;</button></div>
+  <p class="auth-p">Sesión iniciada como <b>${esc(em)}</b>. Tus cambios se guardan en la nube y se sincronizan solos.</p>
+  <div class="auth-msg" id="authMsg"></div>
+  <button class="btn-ghost" data-auth="logout" style="margin-top:10px">Cerrar sesión</button>`;
+}
 
 /* ---------- helpers ---------- */
 function topic(id){return state.topics.find(t=>t.id===id);}
@@ -661,7 +745,26 @@ document.addEventListener("keydown",(e)=>{
   setInterval(paintClocks,1000);
   setInterval(rotQuote,3600);
   focusInit();
+  authInit();
+  setTimeout(()=>{ if(!sb){ const b=document.getElementById("authBtn"); if(b) b.title="La nube tardó en cargar; recarga si no funciona"; } },6000);
 })();
+
+function authInit(){
+  const btn=document.getElementById("authBtn");
+  const panel=document.getElementById("authPanel");
+  if(btn&&panel){
+    btn.addEventListener("click",()=>{panel.hidden=!panel.hidden;});
+    panel.addEventListener("click",e=>{
+      const t=e.target.closest("[data-auth]");if(!t)return;
+      const a=t.dataset.auth;
+      if(a==="close"){panel.hidden=true;}
+      else if(a==="send"){const i=document.getElementById("authEmail");sendMagicLink(i?i.value.trim():"");}
+      else if(a==="logout"){logout();}
+    });
+    panel.addEventListener("keydown",e=>{if(e.key==="Enter"&&e.target.id==="authEmail"){e.preventDefault();sendMagicLink(e.target.value.trim());}});
+  }
+  updateAuthUI();
+}
 
 /* ---------- focus player ---------- */
 function focusInit(){
@@ -687,6 +790,17 @@ function focusInit(){
   document.getElementById("fcustomUrl").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();document.getElementById("fcustomGo").click();}});
   try{const last=localStorage.getItem(FK);if(last){play(last,false);}}catch(e){}
 }
+</script>
+
+<script type="module">
+  import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+  try{
+    const c = window.__SB_CFG;
+    if(c && typeof window.cloudReady === "function"){
+      const client = createClient(c.url, c.key, {auth:{persistSession:true, detectSessionInUrl:true, autoRefreshToken:true}});
+      window.cloudReady(client);
+    }
+  }catch(e){ console.warn("Supabase no disponible", e); }
 </script>
 </body>
 </html>
