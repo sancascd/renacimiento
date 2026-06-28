@@ -1,4 +1,4 @@
-# Contexto para Claude Code — Proyecto Renacimiento
+# Contexto para Claude Code — Renaissance Academy (antes «Proyecto Renacimiento»)
 
 Este archivo guarda el *alma* del proyecto. Léelo antes de hacer cambios y
 respétalo, sobre todo las reglas de producto.
@@ -44,10 +44,16 @@ separa CSS/JS antes que romper la simplicidad.
 
 ## Tokens de diseño (mantener la coherencia)
 
-- Fondo papel `#f2eee4`, tarjetas `#f8f5ee`, tinta `#23282f`.
-- Noche/cabecera `#1b2636`. Acento latón `#b8843c` (brillante `#cd9a4c`).
-- Tipografías: Fraunces (títulos), Spectral (texto), IBM Plex Mono (etiquetas).
-- Estética: mesa de dibujo de noche / observatorio. Calma, aire, sin saturar.
+Estética: **academia girlboss, minimalista y con calma** — editorial cálida, marfil
+y oro suave, mucho aire, sin saturar. Hay una **landing** (vista `landing`) con un
+arco renacentista como portal de entrada, animaciones lentas y serenas.
+
+- Fondo marfil `#f7f2ea`, secundario `#efe7d9`, tarjetas `#fcfaf4`, tinta `#2c2823`.
+- Acento oro `#b18a4a` (brillante `#c7a25a`). Rosa empolvado `#c0917f` como toque suave.
+- Tipografías: **Cormorant Garamond** (titulares, peso ligero/itálica), **Spectral**
+  (texto), **Jost** (etiquetas en mayúsculas con tracking).
+- Cabecera clara translúcida (no oscura). Botones primarios en tinta; el oro como acento.
+- Textura de grano sutil sobre todo (overlay SVG). Respeta `prefers-reduced-motion`.
 
 ## Ideas de evolución (opcionales)
 

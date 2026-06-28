@@ -1,4 +1,6 @@
-# Proyecto Renacimiento · Catálogo
+# Renaissance Academy
+
+*(antes «Proyecto Renacimiento»)*
 
 Mi universidad personal. No para sacar títulos, sino para volver a alimentar mi
 curiosidad y disfrutar de mi propia compañía. Un catálogo visual de temas, cada
