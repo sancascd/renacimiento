@@ -136,6 +136,8 @@
   .item-body .title.done{color:var(--txt-faint);text-decoration:line-through;text-decoration-color:var(--mag);}
   .item-body .author{color:var(--txt-soft);font-size:.92rem;}
   .item-body .note{margin-top:7px;color:var(--txt-soft);font-size:.92rem;background:var(--panel);border:1px solid var(--line-soft);border-radius:8px;padding:9px 12px;}
+  .item-link{display:inline-block;margin-top:7px;font-family:var(--mono);font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ice);text-decoration:none;border-bottom:1px solid transparent;padding-bottom:1px;transition:border-color .2s;}
+  .item-link:hover{border-color:var(--ice);}
   .item-actions{flex:none;display:flex;gap:10px;align-items:center;}
   .icon-btn{background:none;border:none;cursor:pointer;color:var(--txt-faint);font-family:var(--mono);font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;padding:4px 2px;}
   .icon-btn:hover{color:var(--ice);}
@@ -336,10 +338,11 @@ const QUOTES = [
 
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 function uid(){return "id_"+Date.now().toString(36)+"_"+Math.random().toString(36).slice(2,7);}
+function safeUrl(u){return /^https?:\/\//i.test(String(u==null?"":u).trim())?String(u).trim():"";}
 function greeting(){const h=new Date().getHours();if(h<6)return"Buenas noches";if(h<13)return"Buenos días";if(h<21)return"Buenas tardes";return"Buenas noches";}
 
 function seed(){
-  const T = (name,blurb,items)=>({id:uid(),name,blurb,items:items.map(i=>({id:uid(),kind:i[0],title:i[1],author:i[2]||"",note:"",status:"pendiente"})),learnings:[]});
+  const T = (name,blurb,items)=>({id:uid(),name,blurb,items:items.map(i=>({id:uid(),kind:i[0],title:i[1],author:i[2]||"",url:i[3]||"",note:"",status:"pendiente"})),learnings:[]});
   return {topics:[
     T("Astronomía y cosmología","De qué está hecho todo y por qué el cielo es como es.",[
       ["libro","Cosmos","Carl Sagan"],
@@ -388,6 +391,67 @@ function seed(){
   ]};
 }
 
+/* Recursos ligeros curados que se añaden a los temas existentes (una vez). */
+const CURATED = [
+  {t:"Astronomía y cosmología", items:[
+    ["video","Veritasium","Ciencia con asombro, en vídeo","https://www.youtube.com/@veritasium"],
+    ["curso","Stellarium Web","El cielo de hoy en tu navegador","https://stellarium-web.org"],
+    ["curso","NASA — Eyes on the Solar System","Vuela por el sistema solar en 3D","https://eyes.nasa.gov"],
+    ["otro","The Scale of the Universe","Del átomo al cosmos, interactivo","https://scaleofuniverse.com"]
+  ]},
+  {t:"Matemáticas con asombro", items:[
+    ["video","Numberphile","Curiosidades matemáticas en vídeos cortos","https://www.youtube.com/@numberphile"],
+    ["curso","Desmos","Calculadora gráfica para jugar con funciones","https://www.desmos.com"],
+    ["curso","Mathigon · Polypad","Matemáticas manipulables y preciosas","https://mathigon.org"],
+    ["otro","Visor del conjunto de Mandelbrot","Hazte pequeña dentro de un fractal","https://math.hws.edu/eck/js/mandelbrot/MB.html"]
+  ]},
+  {t:"Historia", items:[
+    ["video","Crash Course World History","La historia del mundo en capítulos de 10 min","https://www.youtube.com/@crashcourse"],
+    ["curso","ORBIS (Stanford)","Viaja por el Imperio Romano como entonces","https://orbis.stanford.edu"],
+    ["curso","Chronas","Mapa interactivo de la historia del mundo","https://chronas.org"],
+    ["articulo","The Public Domain Review","Rarezas y joyas históricas para una tarde","https://publicdomainreview.org"]
+  ]},
+  {t:"Psicología y neurociencia", items:[
+    ["documental","The Mind, Explained","Episodios de ~20 min (Netflix)",""],
+    ["video","SciShow Psych","Psicología en vídeos cortos","https://www.youtube.com/@scishowpsych"],
+    ["otro","Moral Machine (MIT)","Decide dilemas y descubre tus sesgos","https://www.moralmachine.net"],
+    ["otro","Ilusiones ópticas de Michael Bach","Cómo te engaña tu cerebro, interactivo","https://michaelbach.de/ot/"]
+  ]},
+  {t:"Arquitectura y diseño", items:[
+    ["documental","Abstract: The Art of Design","El arte del diseño, por episodios (Netflix)",""],
+    ["video","The B1M","Arquitectura del mundo contada en vídeo","https://www.youtube.com/@TheB1M"],
+    ["curso","ArchDaily","Los mejores proyectos de arquitectura, a diario","https://www.archdaily.com"],
+    ["curso","Google Arts & Culture","Pasea por edificios y museos desde el sofá","https://artsandculture.google.com"]
+  ]},
+  {t:"Filosofía de la ciencia", items:[
+    ["video","Crash Course Philosophy","Filosofía en capítulos cortos","https://www.youtube.com/@crashcourse"],
+    ["video","Wireless Philosophy (Wi-Phi)","Ideas filosóficas en vídeos de 5-10 min","https://www.youtube.com/@wirelessphilosophy"],
+    ["curso","Stanford Encyclopedia of Philosophy","La referencia para tirar del hilo","https://plato.stanford.edu"],
+    ["pregunta","Coge un titular científico y pregúntate: ¿cómo lo saben?","",""]
+  ]},
+  {t:"Ajedrez y problemas", items:[
+    ["video","GothamChess","Aprende y ríete con partidas comentadas","https://www.youtube.com/@GothamChess"],
+    ["curso","Lichess · Puzzles","Tácticas rápidas, una al día","https://lichess.org/training"],
+    ["otro","Puzzles de Simon Tatham","40 rompecabezas para jugar en el navegador","https://www.chiark.greenend.org.uk/~sgtatham/puzzles/"],
+    ["pregunta","Resuelve 3 puzzles tácticos hoy, sin mirar el reloj","",""]
+  ]}
+];
+function enrich(s){
+  if(!s || !Array.isArray(s.topics) || s.enrichedV1) return false;
+  let changed=false;
+  CURATED.forEach(c=>{
+    const t=s.topics.find(x=>String(x.name||"").trim().toLowerCase()===c.t.toLowerCase());
+    if(!t) return;
+    if(!Array.isArray(t.items)) t.items=[];
+    c.items.forEach(it=>{
+      const exists=t.items.some(x=>String(x.title||"").trim().toLowerCase()===it[1].toLowerCase());
+      if(!exists){ t.items.push({id:uid(),kind:it[0],title:it[1],author:it[2]||"",url:it[3]||"",note:"",status:"pendiente"}); changed=true; }
+    });
+  });
+  s.enrichedV1=true;
+  return changed;
+}
+
 let state = null;
 const ui = {view:"landing", topicId:null, form:null};
 
@@ -426,9 +490,12 @@ async function syncOnLogin(){
     const {data,error}=await sb.from("catalogs").select("data").eq("user_id",session.user.id).maybeSingle();
     if(error){console.warn("sync",error);toast("Error al sincronizar");return;}
     if(data&&data.data&&Array.isArray(data.data.topics)){
-      state=data.data;saveLocal();
+      state=data.data;
+      const ch=enrich(state);
+      saveLocal();
+      if(ch) await pushCloud(true);
       if(ui.view==="topic"&&!topic(ui.topicId)) ui.view="catalogue";
-      render();toast("Sincronizado ✓");
+      render();toast(ch?"Sincronizado y actualizado ✓":"Sincronizado ✓");
     }else{
       await pushCloud(true);toast("Catálogo subido a la nube ✓");
     }
@@ -627,6 +694,7 @@ function itemRow(t,it){
       <span class="kind">${esc(kindLabel(it.kind))}</span>
       <div class="title ${done?"done":""}">${esc(it.title)}</div>
       ${it.author?`<div class="author">${esc(it.author)}</div>`:""}
+      ${safeUrl(it.url)?`<a class="item-link" href="${esc(safeUrl(it.url))}" target="_blank" rel="noopener noreferrer">Abrir ↗</a>`:""}
       ${it.note?`<div class="note">${esc(it.note)}</div>`:""}
     </div>
     <div class="item-actions">
@@ -637,12 +705,13 @@ function itemRow(t,it){
 }
 
 function itemForm(t){
-  const d=ui.form.draft||{kind:"libro",title:"",author:"",note:""};
+  const d=ui.form.draft||{kind:"libro",title:"",author:"",note:"",url:""};
   const opts=KINDS.map(k=>`<option value="${k.v}" ${k.v===d.kind?"selected":""}>${k.l}</option>`).join("");
   return `<div class="form" data-form="item">
     <div class="row"><label>Tipo</label><select id="f-kind">${opts}</select></div>
     <div class="row"><label>Título</label><input id="f-title" type="text" value="${esc(d.title)}" placeholder="Título del libro, vídeo, pregunta…"></div>
     <div class="row"><label>Autor o fuente <span style="text-transform:none;letter-spacing:0">(opcional)</span></label><input id="f-author" type="text" value="${esc(d.author)}"></div>
+    <div class="row"><label>Enlace <span style="text-transform:none;letter-spacing:0">(opcional)</span></label><input id="f-url" type="url" value="${esc(d.url||"")}" placeholder="https://… (para vídeos, webs, etc.)"></div>
     <div class="row"><label>Nota <span style="text-transform:none;letter-spacing:0">(opcional)</span></label><textarea id="f-note" placeholder="Por qué te interesa, o lo que quieras recordar de esto">${esc(d.note)}</textarea></div>
     <div class="form-actions">
       <button class="btn-primary" data-action="save-item">${ui.form.mode==="edit"?"Guardar":"Añadir"}</button>
@@ -697,14 +766,14 @@ document.addEventListener("click",(e)=>{
     ui.form=null;saveState();render();return;
   }
 
-  if(a==="new-item"){ui.form={type:"item",mode:"add",tid:el.dataset.tid,draft:{kind:"libro",title:"",author:"",note:""}};render();return;}
+  if(a==="new-item"){ui.form={type:"item",mode:"add",tid:el.dataset.tid,draft:{kind:"libro",title:"",author:"",note:"",url:""}};render();return;}
   if(a==="edit-item"){
     const t=topic(el.dataset.tid);const it=t.items.find(x=>x.id===el.dataset.iid);
-    ui.form={type:"item",mode:"edit",tid:t.id,iid:it.id,draft:{kind:it.kind,title:it.title,author:it.author,note:it.note}};render();return;
+    ui.form={type:"item",mode:"edit",tid:t.id,iid:it.id,draft:{kind:it.kind,title:it.title,author:it.author,note:it.note,url:it.url||""}};render();return;
   }
   if(a==="save-item"){
     const title=val("f-title");if(!title){toast("Falta el título");return;}
-    const data={kind:val("f-kind")||"otro",title,author:val("f-author"),note:val("f-note")};
+    const data={kind:val("f-kind")||"otro",title,author:val("f-author"),url:val("f-url"),note:val("f-note")};
     const t=topic(ui.form.tid);
     if(ui.form.mode==="edit"){const it=t.items.find(x=>x.id===ui.form.iid);Object.assign(it,data);}
     else{t.items.push({id:uid(),status:"pendiente",...data});}
@@ -758,7 +827,9 @@ document.addEventListener("keydown",(e)=>{
 (function init(){
   const saved=loadState();
   if(saved&&saved.topics){state=saved;}
-  else{state=seed();saveState();}
+  else{state=seed();}
+  enrich(state);
+  saveLocal();
   if(!usingStorage){const n=document.getElementById("saveNote");if(n)n.textContent="Cambios solo en esta sesión";}
   render();
   paintClocks();
