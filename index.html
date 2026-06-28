@@ -170,6 +170,43 @@
   .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#15151e;border:1px solid var(--line);color:var(--txt);font-family:var(--mono);font-size:.68rem;letter-spacing:.08em;padding:12px 20px;border-radius:30px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:70;text-transform:uppercase;}
   .toast.show{opacity:1;}
 
+  /* ============ "EN CURSO AHORA" band ============ */
+  .nowband{margin:22px auto 0;}
+  .nowband-head{font-family:var(--mono);font-size:.64rem;letter-spacing:.2em;text-transform:uppercase;color:var(--ice);margin-bottom:12px;display:flex;align-items:center;gap:9px;}
+  .nowband-head::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--ice);box-shadow:0 0 9px var(--ice);}
+  .nowrow{display:flex;gap:12px;overflow-x:auto;padding-bottom:8px;scrollbar-width:thin;}
+  .nowchip{flex:0 0 auto;max-width:260px;text-align:left;background:var(--panel);border:1px solid var(--line);border-left:2px solid var(--ice);border-radius:0 10px 10px 0;padding:11px 15px;cursor:pointer;transition:transform .2s,border-color .2s;}
+  .nowchip:hover{border-color:var(--mag);border-left-color:var(--mag);transform:translateY(-2px);}
+  .nowchip .nk{font-family:var(--mono);font-size:.54rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);}
+  .nowchip .nt{font-size:.98rem;color:var(--txt);margin:3px 0 2px;line-height:1.25;}
+  .nowchip .nin{font-family:var(--mono);font-size:.56rem;letter-spacing:.05em;text-transform:uppercase;color:var(--txt-faint);}
+
+  /* ============ FOCUS PLAYER ============ */
+  .focus-fab{position:fixed;right:20px;bottom:20px;z-index:80;width:54px;height:54px;border-radius:50%;border:1px solid var(--line);background:#15151e;color:var(--ice);font-size:1.35rem;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 12px 30px -12px var(--mag);transition:transform .2s,box-shadow .2s,color .2s,border-color .2s;}
+  .focus-fab:hover{transform:translateY(-2px);color:var(--mag);box-shadow:0 16px 36px -12px var(--ice);}
+  .focus-fab:focus-visible{outline:2px solid var(--ice);outline-offset:3px;}
+  .focus-fab.playing{color:var(--mag);border-color:var(--mag);animation:pulse 2.4s ease-in-out infinite;}
+  @keyframes pulse{0%,100%{box-shadow:0 12px 30px -12px var(--mag);}50%{box-shadow:0 12px 38px -10px var(--ice);}}
+  .focus-panel{position:fixed;right:20px;bottom:86px;z-index:80;width:312px;max-width:calc(100vw - 40px);background:#13131c;border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:0 26px 64px -22px #000;}
+  .focus-panel[hidden]{display:none;}
+  .focus-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;}
+  .focus-head h4{font-family:var(--ui);font-weight:600;font-size:.92rem;margin:0;text-transform:uppercase;letter-spacing:.06em;}
+  .focus-head .fsub{font-family:var(--mono);font-size:.58rem;letter-spacing:.14em;text-transform:uppercase;color:var(--txt-faint);margin-top:3px;}
+  .focus-x{background:none;border:none;color:var(--txt-faint);cursor:pointer;font-size:.95rem;padding:2px 4px;}
+  .focus-x:hover{color:var(--mag);}
+  .fchips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;}
+  .fchip{font-family:var(--mono);font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;color:var(--txt-soft);background:var(--panel-2);border:1px solid var(--line);border-radius:20px;padding:7px 13px;cursor:pointer;transition:border-color .2s,color .2s,background .2s;}
+  .fchip:hover{border-color:var(--ice);color:var(--txt);}
+  .fchip.active{background:linear-gradient(135deg,var(--ice),var(--mag));color:#0a0a0f;border-color:transparent;}
+  .yt{position:relative;width:100%;aspect-ratio:16/9;border-radius:10px;overflow:hidden;background:#000;margin-bottom:12px;display:none;}
+  .yt.on{display:block;}
+  .yt iframe{position:absolute;inset:0;width:100%;height:100%;border:0;}
+  .fcustom{display:flex;gap:8px;}
+  .fcustom input{flex:1;min-width:0;font-family:var(--ui);font-size:.86rem;color:var(--txt);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 11px;}
+  .fcustom input::placeholder{color:var(--txt-faint);}
+  .fcustom input:focus{outline:none;border-color:var(--ice);box-shadow:0 0 0 2px rgba(155,220,255,.15);}
+  .fcustom button{font-family:var(--mono);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:#0a0a0f;background:linear-gradient(180deg,#fff,#c2c8d2);border:none;border-radius:8px;padding:0 13px;cursor:pointer;}
+
   @media (max-width:560px){
     .detail-head{flex-direction:column;}
     .item-actions{flex-direction:column;gap:4px;}
@@ -210,6 +247,28 @@
   </footer>
 
   <div class="toast" id="toast"></div>
+
+  <button class="focus-fab" id="focusFab" aria-label="Modo concentración" title="Modo concentración">&#9834;</button>
+  <div class="focus-panel" id="focusPanel" hidden>
+    <div class="focus-head">
+      <div>
+        <h4>Modo concentración</h4>
+        <div class="fsub">música para enfocarte</div>
+      </div>
+      <button class="focus-x" id="focusX" aria-label="Cerrar">&#10005;</button>
+    </div>
+    <div class="fchips" id="fchips">
+      <button class="fchip" data-yt="jfKfPfyJRdk">Lofi</button>
+      <button class="fchip" data-yt="4xDzrJKXOOY">Synthwave</button>
+      <button class="fchip" data-yt="HuFYqnbVbzY">Jazz</button>
+      <button class="fchip" data-yt="">Apagar</button>
+    </div>
+    <div class="yt" id="ytWrap"></div>
+    <div class="fcustom">
+      <input id="fcustomUrl" type="text" placeholder="pega un enlace de YouTube">
+      <button id="fcustomGo">Poner</button>
+    </div>
+  </div>
 
 <script>
 "use strict";
@@ -314,6 +373,17 @@ function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t
 /* ---------- helpers ---------- */
 function topic(id){return state.topics.find(t=>t.id===id);}
 function counts(t){const total=t.items.length;const pend=t.items.filter(i=>i.status!=="hecho").length;return {total,pend,learn:t.learnings.length};}
+function buildNowBand(){
+  const rows=[];
+  state.topics.forEach(t=>t.items.forEach(it=>{ if(it.status==="encurso") rows.push({t,it}); }));
+  if(!rows.length) return "";
+  const chips=rows.map(({t,it})=>`<button class="nowchip" data-action="open" data-id="${t.id}">
+    <div class="nk">${esc(kindLabel(it.kind))}</div>
+    <div class="nt">${esc(it.title)}</div>
+    <div class="nin">en ${esc(t.name)}</div>
+  </button>`).join("");
+  return `<div class="wrap nowband"><div class="nowband-head">En curso ahora</div><div class="nowrow">${chips}</div></div>`;
+}
 
 /* ---------- live bits (clock + quote) ---------- */
 function paintClocks(){
@@ -387,6 +457,7 @@ function renderCatalogue(){
       <h1>El catálogo</h1>
       <p>Llega, mira qué te llama y entra. Cada tema guarda sus lecturas, recursos y lo que vayas aprendiendo.</p>
     </div>
+    ${buildNowBand()}
     <div class="wrap"><div class="grid">${cards}${ui.form&&ui.form.type==="topic"?"":addCard}</div>
     ${ui.form&&ui.form.type==="topic"?`<div style="padding-bottom:50px">${topicForm()}</div>`:""}</div>`;
 }
@@ -589,7 +660,33 @@ document.addEventListener("keydown",(e)=>{
   paintClocks();
   setInterval(paintClocks,1000);
   setInterval(rotQuote,3600);
+  focusInit();
 })();
+
+/* ---------- focus player ---------- */
+function focusInit(){
+  const FK="renacimiento:focus";
+  const fab=document.getElementById("focusFab");
+  const panel=document.getElementById("focusPanel");
+  const wrap=document.getElementById("ytWrap");
+  const chips=document.getElementById("fchips");
+  if(!fab||!panel||!wrap||!chips) return;
+  function setActive(id){chips.querySelectorAll(".fchip").forEach(c=>c.classList.toggle("active", id!=="" && c.dataset.yt===id));}
+  function play(id,auto){
+    if(!id){wrap.classList.remove("on");wrap.innerHTML="";fab.classList.remove("playing");setActive("");try{localStorage.removeItem(FK);}catch(e){}return;}
+    const src="https://www.youtube.com/embed/"+id+"?rel=0&modestbranding=1"+(auto?"&autoplay=1":"");
+    wrap.innerHTML='<iframe src="'+src+'" title="Reproductor de concentración" allow="autoplay; encrypted-media" allowfullscreen></iframe>';
+    wrap.classList.add("on");if(auto)fab.classList.add("playing");setActive(id);
+    try{localStorage.setItem(FK,id);}catch(e){}
+  }
+  function ytId(url){const s=String(url).trim();if(/^[\w-]{11}$/.test(s))return s;const m=s.match(/(?:youtu\.be\/|[?&]v=|embed\/|shorts\/|live\/)([\w-]{11})/);return m?m[1]:"";}
+  fab.addEventListener("click",()=>{panel.hidden=!panel.hidden;});
+  document.getElementById("focusX").addEventListener("click",()=>{panel.hidden=true;});
+  chips.addEventListener("click",e=>{const c=e.target.closest(".fchip");if(!c)return;play(c.dataset.yt||"",true);});
+  document.getElementById("fcustomGo").addEventListener("click",()=>{const v=ytId(document.getElementById("fcustomUrl").value);if(v){play(v,true);}else{toast("Enlace de YouTube no válido");}});
+  document.getElementById("fcustomUrl").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();document.getElementById("fcustomGo").click();}});
+  try{const last=localStorage.getItem(FK);if(last){play(last,false);}}catch(e){}
+}
 </script>
 </body>
 </html>
