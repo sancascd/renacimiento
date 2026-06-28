@@ -27,6 +27,7 @@
     margin:0; background:var(--bg); color:var(--txt);
     font-family:var(--ui); font-size:16px; line-height:1.6;
     -webkit-font-smoothing:antialiased; position:relative; min-height:100vh;
+    overflow-x:hidden;
   }
   body::before{
     content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
@@ -221,6 +222,25 @@
     .detail-head{flex-direction:column;}
     .item-actions{flex-direction:column;gap:4px;}
     .brand .sub{display:none;}
+    /* topbar compacto */
+    .topbar .wrap{flex-wrap:wrap;gap:8px;padding-top:11px;padding-bottom:11px;}
+    .brand .name{font-size:.92rem;}
+    .top-right{gap:8px;}
+    .top-clock{display:none;}
+    .topbtn{padding:8px 11px;font-size:.6rem;letter-spacing:.1em;}
+    /* contenido general */
+    .wrap{padding:0 18px;}
+    .intro{padding-top:42px;}
+    .intro .eyebrow{letter-spacing:.18em;}
+    /* landing: que el texto se ajuste y nunca se corte */
+    .l-nav{padding:15px 18px;font-size:.58rem;letter-spacing:.1em;gap:10px;}
+    .l-hero{padding:6px 18px 0;}
+    .l-eyebrow{font-size:.58rem;letter-spacing:.16em;margin-bottom:18px;max-width:100%;}
+    .word{font-size:12.5vw;letter-spacing:0;}
+    .acad{font-size:.74rem;letter-spacing:.36em;margin-left:.36em;}
+    .l-quote{font-size:.7rem;letter-spacing:.06em;padding:0 8px;}
+    .l-cta{margin-top:30px;}
+    .l-pillars{font-size:.56rem;letter-spacing:.14em;gap:10px;padding:0 18px 26px;}
   }
   @media (prefers-reduced-motion:reduce){
     html{scroll-behavior:auto;}
